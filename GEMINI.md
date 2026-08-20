@@ -15,7 +15,8 @@ This document outlines mandatory guidelines for AI assistants working on the *Ov
 ---
 
 ## 2. Architecture & Single Responsibility (SRP)
-- **Player Input (`PlayerInput`)**: Handles direct input reading and fires events.
+- **Player Input (`PlayerInput`)**: Handles direct input reading and fires events (including per-tap `OnDashPressed`).
+- **Player Movement (`PlayerMovement`)**: Handles camera-relative movement and tap-activated Dash impulse bursts (`dashSpeed = 16f`, `dashDuration = 0.18s`).
 - **Player Interactor (`PlayerInteractor`)**: Spherecasts for targets and dispatches input events to the target's components.
 - **Player Inventory (`PlayerInventory`)**: Manages held item state, hand sockets, and inventory transfers.
 - **Interactables (`InteractableObject`)**: Manages raycast highlighting and delegates interactions to specific gameplay components (`Table`, `IngredientBox`, `TrashCan`, `IngredientItem`).

@@ -7,9 +7,18 @@ namespace OverEnchanted.Player
     {
         [Header("Movement Settings")]
         [SerializeField] private float walkSpeed = 5f;
-        [SerializeField] private float sprintSpeed = 8f;
         [SerializeField] private float rotationSpeed = 15f;
         [SerializeField] private float gravity = -9.81f;
+
+        [Header("Dash Settings")]
+        [Tooltip("Burst movement speed during a dash.")]
+        [SerializeField] private float dashSpeed = 16f;
+
+        [Tooltip("Duration in seconds of a single dash burst.")]
+        [SerializeField] private float dashDuration = 0.18f;
+
+        [Tooltip("Cooldown in seconds between dash triggers to prevent single-frame spam.")]
+        [SerializeField] private float dashCooldown = 0.25f;
 
         [Header("Physics Interaction")]
         [Tooltip("Force applied when player bumps into rigidbodies on the ground.")]
@@ -22,8 +31,14 @@ namespace OverEnchanted.Player
         private CharacterController characterController;
         private float verticalVelocity;
 
-        public float CurrentSpeed => new Vector3(characterController.velocity.x, 0f, characterController.velocity.z).magnitude;
-        public bool IsGrounded => characterController.isGrounded;
+        private bool isDashing;
+        private float dashTimer;
+        private float dashCooldownTimer;
+        private Vector3 dashDirection;
+
+        public float CurrentSpeed => characterController != null ? new Vector3(characterController.velocity.x, 0f, characterController.velocity.z).magnitude : 0f;
+        public bool IsGrounded => characterController != null && characterController.isGrounded;
+        public bool IsDashing => isDashing;
 
         private void Awake()
         {
@@ -39,23 +54,102 @@ namespace OverEnchanted.Player
         }
 
         /// <summary>
+        /// Triggers a high-speed dash burst in the current input direction (or transform.forward if neutral).
+        /// Must be tapped repeatedly for long distance traversal.
+        /// </summary>
+        public bool TriggerDash(Vector2 inputDirection)
+        {
+            if (dashCooldownTimer > 0f) return false;
+
+            Vector3 dir = CalculateCameraRelativeDirection(inputDirection);
+            if (dir.sqrMagnitude < 0.001f)
+            {
+                dir = transform.forward;
+            }
+
+            dashDirection = dir.normalized;
+            isDashing = true;
+            dashTimer = dashDuration;
+            dashCooldownTimer = dashCooldown;
+
+            if (dashDirection.sqrMagnitude > 0.001f)
+            {
+                transform.rotation = Quaternion.LookRotation(dashDirection, Vector3.up);
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Moves and rotates the player character relative to the fixed camera's orientation.
         /// </summary>
         /// <param name="inputDirection">Vector2 direction from Input System (WASD / Left Stick)</param>
-        /// <param name="isSprinting">Whether the player is sprinting</param>
-        public void Move(Vector2 inputDirection, bool isSprinting)
+        /// <param name="isSprinting">Compatibility parameter</param>
+        public void Move(Vector2 inputDirection, bool isSprinting = false)
         {
-            if (targetCamera == null)
+            // Cooldown timer update
+            if (dashCooldownTimer > 0f)
             {
-                targetCamera = Camera.main;
-                if (targetCamera == null)
+                dashCooldownTimer -= Time.deltaTime;
+            }
+
+            Vector3 horizontalVelocity;
+
+            if (isDashing)
+            {
+                dashTimer -= Time.deltaTime;
+                if (dashTimer <= 0f)
                 {
-                    Debug.LogWarning("PlayerMovement: Camera target is missing. Assign a Camera or set one as MainCamera.");
-                    return;
+                    isDashing = false;
+                }
+
+                horizontalVelocity = dashDirection * dashSpeed;
+            }
+            else
+            {
+                Vector3 moveDirection = CalculateCameraRelativeDirection(inputDirection);
+                horizontalVelocity = moveDirection * walkSpeed;
+
+                // Rotate towards movement direction smoothly
+                if (moveDirection.sqrMagnitude > 0.001f)
+                {
+                    Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
                 }
             }
 
-            // 1. Get Camera's forward and right vectors projected onto the horizontal XZ plane
+            // Gravity calculation
+            if (characterController != null)
+            {
+                if (characterController.isGrounded && verticalVelocity < 0f)
+                {
+                    verticalVelocity = -2f; // Keep character grounded on slopes/flat ground
+                }
+
+                verticalVelocity += gravity * Time.deltaTime;
+
+                // Combine horizontal & vertical velocities
+                Vector3 finalVelocity = horizontalVelocity + Vector3.up * verticalVelocity;
+
+                // Apply movement via CharacterController
+                characterController.Move(finalVelocity * Time.deltaTime);
+            }
+        }
+
+        private Vector3 CalculateCameraRelativeDirection(Vector2 inputDirection)
+        {
+            if (inputDirection.sqrMagnitude < 0.001f) return Vector3.zero;
+
+            if (targetCamera == null)
+            {
+                targetCamera = Camera.main;
+            }
+
+            if (targetCamera == null)
+            {
+                return new Vector3(inputDirection.x, 0f, inputDirection.y).normalized;
+            }
+
             Vector3 cameraForward = targetCamera.transform.forward;
             Vector3 cameraRight = targetCamera.transform.right;
 
@@ -64,33 +158,7 @@ namespace OverEnchanted.Player
             cameraForward.Normalize();
             cameraRight.Normalize();
 
-            // 2. Calculate movement direction relative to camera view
-            Vector3 moveDirection = (cameraForward * inputDirection.y + cameraRight * inputDirection.x).normalized;
-
-            // 3. Calculate speed & horizontal velocity
-            float speed = isSprinting ? sprintSpeed : walkSpeed;
-            Vector3 horizontalVelocity = moveDirection * speed;
-
-            // 4. Gravity calculation
-            if (characterController.isGrounded && verticalVelocity < 0f)
-            {
-                verticalVelocity = -2f; // Keep character grounded on slopes/flat ground
-            }
-
-            verticalVelocity += gravity * Time.deltaTime;
-
-            // Combine horizontal & vertical velocities
-            Vector3 finalVelocity = horizontalVelocity + Vector3.up * verticalVelocity;
-
-            // Apply movement via CharacterController
-            characterController.Move(finalVelocity * Time.deltaTime);
-
-            // 5. Rotate towards movement direction smoothly
-            if (moveDirection.sqrMagnitude > 0.001f)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-            }
+            return (cameraForward * inputDirection.y + cameraRight * inputDirection.x).normalized;
         }
 
         public void SetCamera(Camera newCamera)

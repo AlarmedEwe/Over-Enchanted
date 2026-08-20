@@ -22,6 +22,22 @@ namespace OverEnchanted.Player
             Inventory = GetComponent<PlayerInventory>();
         }
 
+        private void OnEnable()
+        {
+            if (Input != null)
+            {
+                Input.OnDashPressed += HandleDash;
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (Input != null)
+            {
+                Input.OnDashPressed -= HandleDash;
+            }
+        }
+
         private void Update()
         {
             HandleMovement();
@@ -32,6 +48,14 @@ namespace OverEnchanted.Player
             if (Input != null && Movement != null)
             {
                 Movement.Move(Input.MoveInput, Input.IsSprinting);
+            }
+        }
+
+        private void HandleDash()
+        {
+            if (Movement != null && Input != null)
+            {
+                Movement.TriggerDash(Input.MoveInput);
             }
         }
     }

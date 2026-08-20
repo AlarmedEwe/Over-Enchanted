@@ -28,6 +28,7 @@ namespace OverEnchanted.Player
         public event InputVectorHandler OnMoveInputChanged;
         public event InputButtonHandler OnInteractPressed;
         public event InputButtonHandler OnGrabDropPressed;
+        public event InputButtonHandler OnDashPressed;
         public event InputButtonHandler OnJumpPressed; // Compatibility alias
 
         private void Awake()
@@ -46,7 +47,6 @@ namespace OverEnchanted.Player
         private void OnEnable()
         {
             if (moveAction != null) moveAction.Enable();
-            if (sprintAction != null) sprintAction.Enable();
 
             bool isSendingMessages = playerInputComponent != null &&
                 (playerInputComponent.notificationBehavior == PlayerNotifications.SendMessages ||
@@ -54,6 +54,11 @@ namespace OverEnchanted.Player
 
             if (!isSendingMessages)
             {
+                if (sprintAction != null)
+                {
+                    sprintAction.Enable();
+                    sprintAction.performed += OnSprintPerformed;
+                }
                 if (interactAction != null)
                 {
                     interactAction.Enable();
@@ -70,8 +75,12 @@ namespace OverEnchanted.Player
         private void OnDisable()
         {
             if (moveAction != null) moveAction.Disable();
-            if (sprintAction != null) sprintAction.Disable();
 
+            if (sprintAction != null)
+            {
+                sprintAction.performed -= OnSprintPerformed;
+                sprintAction.Disable();
+            }
             if (interactAction != null)
             {
                 interactAction.performed -= OnInteractPerformed;
@@ -109,7 +118,16 @@ namespace OverEnchanted.Player
 
         private float lastInteractTime = -10f;
         private float lastGrabDropTime = -10f;
+        private float lastDashTime = -10f;
         private const float INPUT_COOLDOWN = 0.25f; // 250ms debounce cooldown between interaction triggers
+
+        private void OnSprintPerformed(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                TriggerDash();
+            }
+        }
 
         private void OnInteractPerformed(InputAction.CallbackContext context)
         {
@@ -137,6 +155,10 @@ namespace OverEnchanted.Player
         public void OnSprint(InputValue value)
         {
             IsSprinting = value.isPressed;
+            if (value.isPressed)
+            {
+                TriggerDash();
+            }
         }
 
         public void OnInteract(InputValue value)
@@ -153,6 +175,13 @@ namespace OverEnchanted.Player
             {
                 TriggerGrabDrop();
             }
+        }
+
+        private void TriggerDash()
+        {
+            if (Time.time - lastDashTime < 0.1f) return;
+            lastDashTime = Time.time;
+            OnDashPressed?.Invoke();
         }
 
         private void TriggerInteract()
