@@ -1,4 +1,5 @@
 using UnityEngine;
+using OverEnchanted.Interaction;
 
 namespace OverEnchanted.Player
 {
@@ -55,13 +56,40 @@ namespace OverEnchanted.Player
                 col.enabled = false;
             }
 
-            // 3. Parent to holdPoint socket and reset local transform
+            // 3. Parent to holdPoint socket using scale tracker to preserve original mesh scale
             CurrentItem = itemInstance;
-            CurrentItem.transform.SetParent(holdPoint, false);
-            CurrentItem.transform.localPosition = Vector3.zero;
-            CurrentItem.transform.localRotation = Quaternion.identity;
+            ItemScaleTracker scaleTracker = CurrentItem.GetComponent<ItemScaleTracker>();
+            if (scaleTracker == null)
+            {
+                scaleTracker = CurrentItem.AddComponent<ItemScaleTracker>();
+            }
+            scaleTracker.SetParentPreservingScale(holdPoint);
 
             return true;
+        }
+
+        /// <summary>
+        /// Removes and returns the currently held item without applying floor placement or gravity physics.
+        /// Useful for placing items onto tables, counters, or containers.
+        /// </summary>
+        public GameObject RemoveItem()
+        {
+            if (!HasItem) return null;
+
+            GameObject item = CurrentItem;
+            CurrentItem = null;
+
+            ItemScaleTracker tracker = item.GetComponent<ItemScaleTracker>();
+            if (tracker != null)
+            {
+                tracker.UnparentPreservingScale();
+            }
+            else
+            {
+                item.transform.SetParent(null);
+            }
+
+            return item;
         }
 
         /// <summary>
@@ -75,9 +103,17 @@ namespace OverEnchanted.Player
             GameObject droppedItem = CurrentItem;
             CurrentItem = null;
 
-            // Place item slightly forward in front of player to prevent collider overlap with player's CharacterController
-            droppedItem.transform.SetParent(null);
-            droppedItem.transform.position = transform.position + transform.forward * 0.95f + Vector3.up * 0.3f;
+            Vector3 dropPosition = transform.position + transform.forward * 0.95f + Vector3.up * 0.3f;
+            ItemScaleTracker tracker = droppedItem.GetComponent<ItemScaleTracker>();
+            if (tracker != null)
+            {
+                tracker.UnparentPreservingScale();
+            }
+            else
+            {
+                droppedItem.transform.SetParent(null);
+            }
+            droppedItem.transform.position = dropPosition;
 
             // 1. Re-enable all colliders (add BoxCollider if completely missing)
             Collider[] colliders = droppedItem.GetComponentsInChildren<Collider>(true);

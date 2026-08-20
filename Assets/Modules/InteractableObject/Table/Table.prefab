@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5598190602638684265}
   - component: {fileID: 765337835266773875}
   - component: {fileID: 2629831650124713378}
+  - component: {fileID: 4837192847192837482}
   m_Layer: 0
   m_Name: Table
   m_TagString: Untagged
@@ -128,3 +129,16 @@ MonoBehaviour:
   brightnessFactor: 1.45
   highlightTint: {r: 0.15, g: 0.15, b: 0.15, a: 0}
   objectRenderer: {fileID: 0}
+--- !u!114 &4837192847192837482
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5209016670536133821}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d9c12e34f5a6b7c8d9e0f1a2b3c4d5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OverEnchanted.Interaction.Table
+  itemSlot: {fileID: 0}

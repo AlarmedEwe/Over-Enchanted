@@ -3,7 +3,6 @@ using UnityEngine;
 namespace OverEnchanted.Ingredients
 {
     [RequireComponent(typeof(Collider))]
-    [RequireComponent(typeof(Rigidbody))]
     public class IngredientItem : MonoBehaviour
     {
         [Header("Ingredient Details")]

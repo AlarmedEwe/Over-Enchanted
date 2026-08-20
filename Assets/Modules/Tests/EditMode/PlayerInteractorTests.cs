@@ -65,7 +65,7 @@ namespace OverEnchanted.Tests
         }
 
         [Test]
-        public void HandleGrabDrop_WhenFacingIngredientBoxAndAlreadyHoldingItem_DropsItem()
+        public void HandleGrabDrop_WhenFacingInteractableObjectAndAlreadyHoldingItem_DoesNotDropItemToFloor()
         {
             // Arrange
             GameObject currentHeld = new GameObject("HeldItem");
@@ -79,8 +79,8 @@ namespace OverEnchanted.Tests
             handleMethod.Invoke(interactor, null);
 
             // Assert
-            Assert.IsFalse(playerInventory.HasItem, "Player should drop current held item when interacting with box while full.");
-            Assert.IsNull(currentHeld.transform.parent, "Dropped item should be unparented.");
+            Assert.IsTrue(playerInventory.HasItem, "Player must retain held item when targeting an interactable object.");
+            Assert.AreEqual(playerInventory.HoldPoint, currentHeld.transform.parent, "Held item must remain parented to HoldPoint.");
 
             Object.DestroyImmediate(currentHeld);
         }

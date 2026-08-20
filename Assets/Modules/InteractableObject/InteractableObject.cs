@@ -86,6 +86,12 @@ namespace OverEnchanted.Interaction
                 return ingredientBox.TryDispenseIngredient(inventory);
             }
 
+            Table table = GetComponent<Table>();
+            if (table != null)
+            {
+                return table.OnGrabDrop(inventory);
+            }
+
             return false;
         }
 

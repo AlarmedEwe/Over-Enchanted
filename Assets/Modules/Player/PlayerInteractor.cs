@@ -73,6 +73,15 @@ namespace OverEnchanted.Interaction
                     interactable = hit.collider.GetComponent<InteractableObject>();
                 }
 
+                // Fallback: If object has Table or IngredientBox component directly without InteractableObject on root
+                if (interactable == null)
+                {
+                    Table table = hit.collider.GetComponentInParent<Table>();
+                    IngredientBox box = hit.collider.GetComponentInParent<IngredientBox>();
+                    if (table != null) interactable = table.GetComponent<InteractableObject>() ?? table.gameObject.AddComponent<InteractableObject>();
+                    else if (box != null) interactable = box.GetComponent<InteractableObject>() ?? box.gameObject.AddComponent<InteractableObject>();
+                }
+
                 if (interactable != null)
                 {
                     newTarget = interactable;
@@ -123,14 +132,18 @@ namespace OverEnchanted.Interaction
             if (Time.frameCount == lastHandleGrabDropFrame) return;
             lastHandleGrabDropFrame = Time.frameCount;
 
-            // 1. If targeting an interactable object, attempt object action first (e.g. placing on table/counter)
+            // Perform raycast check on the exact input frame
+            PerformRaycastCheck();
+
+            // 1. If targeting an interactable object, delegate interaction to it and return
+            // Under NO circumstance should a held item be dropped on the floor when facing an interactable object
             if (CurrentTarget != null)
             {
-                bool handled = CurrentTarget.OnGrabDrop(playerInventory);
-                if (handled) return;
+                CurrentTarget.OnGrabDrop(playerInventory);
+                return;
             }
 
-            // 2. If object did not handle it or no target, drop the held item
+            // 2. Only drop held item on the floor if NOT targeting any interactable object
             if (playerInventory != null && playerInventory.HasItem)
             {
                 playerInventory.DropItem();
