@@ -1,0 +1,41 @@
+# Unity temporary & build directories
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+UserSettings/
+MemoryCaptures/
+Recordings/
+
+# IDE & Project solution files
+.vs/
+.idea/
+.vscode/
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.userprefs
+*.DotSettings.user
+
+# Binary & build outputs
+*.dll
+*.exe
+*.apk
+*.aab
+*.app
+*.pdb
+*.mdb
+
+# Packages & Assets archives
+*.unitypackage
+*.zip
+*.tar.gz
+
+# System files
+.DS_Store
+Thumbs.db
