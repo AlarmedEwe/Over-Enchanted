@@ -79,10 +79,12 @@ namespace OverEnchanted.Interaction
                 {
                     Table table = hit.collider.GetComponentInParent<Table>();
                     IngredientBox box = hit.collider.GetComponentInParent<IngredientBox>();
+                    TrashCan trash = hit.collider.GetComponentInParent<TrashCan>();
                     IngredientItem item = hit.collider.GetComponentInParent<IngredientItem>();
 
                     if (table != null) interactable = table.GetComponent<InteractableObject>() ?? table.gameObject.AddComponent<InteractableObject>();
                     else if (box != null) interactable = box.GetComponent<InteractableObject>() ?? box.gameObject.AddComponent<InteractableObject>();
+                    else if (trash != null) interactable = trash.GetComponent<InteractableObject>() ?? trash.gameObject.AddComponent<InteractableObject>();
                     else if (item != null) interactable = item.GetComponent<InteractableObject>() ?? item.gameObject.AddComponent<InteractableObject>();
                 }
 

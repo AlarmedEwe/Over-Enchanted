@@ -93,6 +93,12 @@ namespace OverEnchanted.Interaction
                 return table.OnGrabDrop(inventory);
             }
 
+            TrashCan trashCan = GetComponent<TrashCan>();
+            if (trashCan != null)
+            {
+                return trashCan.OnGrabDrop(inventory);
+            }
+
             IngredientItem ingredientItem = GetComponent<IngredientItem>();
             if (ingredientItem != null)
             {
