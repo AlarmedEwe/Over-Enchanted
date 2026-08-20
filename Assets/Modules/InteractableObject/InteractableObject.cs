@@ -1,4 +1,5 @@
 using UnityEngine;
+using OverEnchanted.Player;
 
 namespace OverEnchanted.Interaction
 {
@@ -71,6 +72,29 @@ namespace OverEnchanted.Interaction
         public virtual void Interact()
         {
             Debug.Log($"[InteractableObject] Interacted with: {gameObject.name}");
+        }
+
+        /// <summary>
+        /// Action triggered when player presses the Grab/Drop button (Space / Gamepad South).
+        /// Automatically delegates to specific functional components like IngredientBox attached to this object.
+        /// </summary>
+        public virtual bool OnGrabDrop(PlayerInventory inventory)
+        {
+            IngredientBox ingredientBox = GetComponent<IngredientBox>();
+            if (ingredientBox != null)
+            {
+                return ingredientBox.TryDispenseIngredient(inventory);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Action triggered when player presses the Work/Interact button (E / Gamepad North).
+        /// </summary>
+        public virtual bool OnWorkInteract(PlayerInventory inventory)
+        {
+            return false;
         }
 
         private void OnDisable()

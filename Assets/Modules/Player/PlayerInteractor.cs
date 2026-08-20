@@ -24,10 +24,12 @@ namespace OverEnchanted.Interaction
         public InteractableObject CurrentTarget { get; private set; }
 
         private PlayerInput playerInput;
+        private PlayerInventory playerInventory;
 
         private void Awake()
         {
             playerInput = GetComponent<PlayerInput>();
+            playerInventory = GetComponent<PlayerInventory>();
         }
 
         private void OnEnable()
@@ -35,6 +37,7 @@ namespace OverEnchanted.Interaction
             if (playerInput != null)
             {
                 playerInput.OnInteractPressed += HandleInteract;
+                playerInput.OnGrabDropPressed += HandleGrabDrop;
             }
         }
 
@@ -43,6 +46,7 @@ namespace OverEnchanted.Interaction
             if (playerInput != null)
             {
                 playerInput.OnInteractPressed -= HandleInteract;
+                playerInput.OnGrabDropPressed -= HandleGrabDrop;
             }
 
             ClearCurrentTarget();
@@ -109,6 +113,27 @@ namespace OverEnchanted.Interaction
             if (CurrentTarget != null)
             {
                 CurrentTarget.Interact();
+            }
+        }
+
+        private int lastHandleGrabDropFrame = -1;
+
+        private void HandleGrabDrop()
+        {
+            if (Time.frameCount == lastHandleGrabDropFrame) return;
+            lastHandleGrabDropFrame = Time.frameCount;
+
+            // 1. If targeting an interactable object, attempt object action first (e.g. placing on table/counter)
+            if (CurrentTarget != null)
+            {
+                bool handled = CurrentTarget.OnGrabDrop(playerInventory);
+                if (handled) return;
+            }
+
+            // 2. If object did not handle it or no target, drop the held item
+            if (playerInventory != null && playerInventory.HasItem)
+            {
+                playerInventory.DropItem();
             }
         }
 

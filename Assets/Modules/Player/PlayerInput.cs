@@ -10,6 +10,8 @@ namespace OverEnchanted.Player
         [SerializeField] private string moveActionName = "Move";
         [SerializeField] private string sprintActionName = "Sprint";
         [SerializeField] private string interactActionName = "Interact";
+        [Tooltip("Action mapping for picking up / dropping items (maps to Unity 'Jump' action: Space / South Button)")]
+        [SerializeField] private string grabDropActionName = "Jump";
 
         public Vector2 MoveInput { get; private set; }
         public bool IsSprinting { get; private set; }
@@ -18,12 +20,15 @@ namespace OverEnchanted.Player
         private InputAction moveAction;
         private InputAction sprintAction;
         private InputAction interactAction;
+        private InputAction grabDropAction;
 
         public delegate void InputVectorHandler(Vector2 input);
         public delegate void InputButtonHandler();
 
         public event InputVectorHandler OnMoveInputChanged;
         public event InputButtonHandler OnInteractPressed;
+        public event InputButtonHandler OnGrabDropPressed;
+        public event InputButtonHandler OnJumpPressed; // Compatibility alias
 
         private void Awake()
         {
@@ -34,6 +39,7 @@ namespace OverEnchanted.Player
                 moveAction = playerInputComponent.actions.FindAction(moveActionName);
                 sprintAction = playerInputComponent.actions.FindAction(sprintActionName);
                 interactAction = playerInputComponent.actions.FindAction(interactActionName);
+                grabDropAction = playerInputComponent.actions.FindAction(grabDropActionName);
             }
         }
 
@@ -41,10 +47,23 @@ namespace OverEnchanted.Player
         {
             if (moveAction != null) moveAction.Enable();
             if (sprintAction != null) sprintAction.Enable();
-            if (interactAction != null)
+
+            bool isSendingMessages = playerInputComponent != null &&
+                (playerInputComponent.notificationBehavior == PlayerNotifications.SendMessages ||
+                 playerInputComponent.notificationBehavior == PlayerNotifications.BroadcastMessages);
+
+            if (!isSendingMessages)
             {
-                interactAction.Enable();
-                interactAction.performed += OnInteractPerformed;
+                if (interactAction != null)
+                {
+                    interactAction.Enable();
+                    interactAction.performed += OnInteractPerformed;
+                }
+                if (grabDropAction != null)
+                {
+                    grabDropAction.Enable();
+                    grabDropAction.performed += OnGrabDropPerformed;
+                }
             }
         }
 
@@ -52,10 +71,16 @@ namespace OverEnchanted.Player
         {
             if (moveAction != null) moveAction.Disable();
             if (sprintAction != null) sprintAction.Disable();
+
             if (interactAction != null)
             {
                 interactAction.performed -= OnInteractPerformed;
                 interactAction.Disable();
+            }
+            if (grabDropAction != null)
+            {
+                grabDropAction.performed -= OnGrabDropPerformed;
+                grabDropAction.Disable();
             }
         }
 
@@ -82,9 +107,24 @@ namespace OverEnchanted.Player
             }
         }
 
+        private float lastInteractTime = -10f;
+        private float lastGrabDropTime = -10f;
+        private const float INPUT_COOLDOWN = 0.25f; // 250ms debounce cooldown between interaction triggers
+
         private void OnInteractPerformed(InputAction.CallbackContext context)
         {
-            OnInteractPressed?.Invoke();
+            if (context.performed)
+            {
+                TriggerInteract();
+            }
+        }
+
+        private void OnGrabDropPerformed(InputAction.CallbackContext context)
+        {
+            if (context.performed)
+            {
+                TriggerGrabDrop();
+            }
         }
 
         // SendMessages / BroadcastMessages Unity Callbacks compatibility
@@ -103,8 +143,31 @@ namespace OverEnchanted.Player
         {
             if (value.isPressed)
             {
-                OnInteractPressed?.Invoke();
+                TriggerInteract();
             }
+        }
+
+        public void OnJump(InputValue value)
+        {
+            if (value.isPressed)
+            {
+                TriggerGrabDrop();
+            }
+        }
+
+        private void TriggerInteract()
+        {
+            if (Time.time - lastInteractTime < INPUT_COOLDOWN) return;
+            lastInteractTime = Time.time;
+            OnInteractPressed?.Invoke();
+        }
+
+        private void TriggerGrabDrop()
+        {
+            if (Time.time - lastGrabDropTime < INPUT_COOLDOWN) return;
+            lastGrabDropTime = Time.time;
+            OnGrabDropPressed?.Invoke();
+            OnJumpPressed?.Invoke();
         }
     }
 }

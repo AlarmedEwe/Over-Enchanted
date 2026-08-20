@@ -11,6 +11,10 @@ namespace OverEnchanted.Player
         [SerializeField] private float rotationSpeed = 15f;
         [SerializeField] private float gravity = -9.81f;
 
+        [Header("Physics Interaction")]
+        [Tooltip("Force applied when player bumps into rigidbodies on the ground.")]
+        [SerializeField] private float pushPower = 2.0f;
+
         [Header("Camera Reference")]
         [Tooltip("Fixed camera reference. If null, Camera.main will be used automatically.")]
         [SerializeField] private Camera targetCamera;
@@ -92,6 +96,23 @@ namespace OverEnchanted.Player
         public void SetCamera(Camera newCamera)
         {
             targetCamera = newCamera;
+        }
+
+        private void OnControllerColliderHit(ControllerColliderHit hit)
+        {
+            Rigidbody body = hit.collider.attachedRigidbody;
+
+            // Do not push static objects or kinematic rigidbodies
+            if (body == null || body.isKinematic) return;
+
+            // Do not push objects below player feet
+            if (hit.moveDirection.y < -0.3f) return;
+
+            // Calculate push direction on horizontal plane
+            Vector3 pushDir = new Vector3(hit.moveDirection.x, 0f, hit.moveDirection.z);
+
+            // Apply push force
+            body.AddForce(pushDir * pushPower, ForceMode.Impulse);
         }
     }
 }
