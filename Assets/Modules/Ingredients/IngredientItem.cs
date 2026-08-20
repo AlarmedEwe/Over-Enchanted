@@ -1,4 +1,6 @@
 using UnityEngine;
+using OverEnchanted.Interaction;
+using OverEnchanted.Player;
 
 namespace OverEnchanted.Ingredients
 {
@@ -21,6 +23,12 @@ namespace OverEnchanted.Ingredients
 
         private void Awake()
         {
+            // Ensure InteractableObject is present so ingredients on floor or surfaces can be highlighted and picked back up
+            if (GetComponent<InteractableObject>() == null)
+            {
+                gameObject.AddComponent<InteractableObject>();
+            }
+
             rb = GetComponent<Rigidbody>();
             if (rb != null)
             {
@@ -39,6 +47,23 @@ namespace OverEnchanted.Ingredients
                     rb.detectCollisions = false;
                 }
             }
+        }
+
+        /// <summary>
+        /// Interaction called when player attempts to grab/drop while targeting this ingredient.
+        /// Allows the player to pick this item back up if their inventory is empty.
+        /// </summary>
+        public bool OnGrabDrop(PlayerInventory inventory)
+        {
+            if (inventory == null) return false;
+
+            // If player is empty-handed, pick up this ingredient off the floor/surface
+            if (!inventory.HasItem)
+            {
+                return inventory.PickUpItem(gameObject);
+            }
+
+            return false;
         }
     }
 }

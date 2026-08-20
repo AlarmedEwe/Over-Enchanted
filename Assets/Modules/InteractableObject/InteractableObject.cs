@@ -1,5 +1,6 @@
 using UnityEngine;
 using OverEnchanted.Player;
+using OverEnchanted.Ingredients;
 
 namespace OverEnchanted.Interaction
 {
@@ -90,6 +91,12 @@ namespace OverEnchanted.Interaction
             if (table != null)
             {
                 return table.OnGrabDrop(inventory);
+            }
+
+            IngredientItem ingredientItem = GetComponent<IngredientItem>();
+            if (ingredientItem != null)
+            {
+                return ingredientItem.OnGrabDrop(inventory);
             }
 
             return false;

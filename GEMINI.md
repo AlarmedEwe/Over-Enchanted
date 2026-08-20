@@ -18,8 +18,8 @@ This document outlines mandatory guidelines for AI assistants working on the *Ov
 - **Player Input (`PlayerInput`)**: Handles direct input reading and fires events.
 - **Player Interactor (`PlayerInteractor`)**: Spherecasts for targets and dispatches input events to the target's components.
 - **Player Inventory (`PlayerInventory`)**: Manages held item state, hand sockets, and inventory transfers.
-- **Interactables (`InteractableObject`)**: Manages raycast highlighting and delegates interactions to specific gameplay components (`Table`, `IngredientBox`).
-- **Gameplay Objects (`Table`, etc.)**: Focus exclusively on their specific game mechanics (e.g. placing items, dispensing ingredients, processing recipes).
+- **Interactables (`InteractableObject`)**: Manages raycast highlighting and delegates interactions to specific gameplay components (`Table`, `IngredientBox`, `IngredientItem`).
+- **Gameplay Objects (`Table`, `IngredientItem`, etc.)**: Focus exclusively on their specific game mechanics (e.g. placing items, dispensing ingredients, picking items up off floor/tables).
 
 ---
 

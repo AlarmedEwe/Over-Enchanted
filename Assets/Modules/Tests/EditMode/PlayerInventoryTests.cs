@@ -99,5 +99,25 @@ namespace OverEnchanted.Tests
             // Assert
             Assert.IsNull(dropped, "DropItem should return null when inventory is empty.");
         }
+
+        [Test]
+        public void PickUpIngredientItemFromFloor_WhenEmptyHanded_EquipsItem()
+        {
+            // Arrange
+            GameObject floorItem = new GameObject("FloorTomato");
+            floorItem.AddComponent<BoxCollider>();
+            floorItem.AddComponent<Rigidbody>();
+            IngredientItem ingredient = floorItem.AddComponent<IngredientItem>();
+
+            // Act
+            bool result = ingredient.OnGrabDrop(inventory);
+
+            // Assert
+            Assert.IsTrue(result, "OnGrabDrop on floor ingredient should return true when player is empty handed.");
+            Assert.IsTrue(inventory.HasItem, "Player should hold the floor ingredient.");
+            Assert.AreEqual(floorItem, inventory.CurrentItem, "Held item should match floor ingredient.");
+
+            Object.DestroyImmediate(floorItem);
+        }
     }
 }

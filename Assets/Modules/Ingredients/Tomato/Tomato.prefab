@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5190249749584206278}
   - component: {fileID: -5367886652749336106}
   - component: {fileID: -4031941919272546455}
+  - component: {fileID: -1246991314985675833}
   m_Layer: 0
   m_Name: Tomato
   m_TagString: Untagged
@@ -158,3 +159,18 @@ MonoBehaviour:
   mass: 0.5
   drag: 2
   angularDrag: 3
+--- !u!114 &-1246991314985675833
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4642308426147038451}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3797a96ab5bdf14fab6e798852bfaac0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OverEnchanted.Interaction.InteractableObject
+  brightnessFactor: 1.45
+  highlightTint: {r: 0.15, g: 0.15, b: 0.15, a: 0}
+  objectRenderer: {fileID: 0}

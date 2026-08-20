@@ -1,5 +1,6 @@
 using UnityEngine;
 using OverEnchanted.Player;
+using OverEnchanted.Ingredients;
 
 namespace OverEnchanted.Interaction
 {
@@ -73,13 +74,16 @@ namespace OverEnchanted.Interaction
                     interactable = hit.collider.GetComponent<InteractableObject>();
                 }
 
-                // Fallback: If object has Table or IngredientBox component directly without InteractableObject on root
+                // Fallback: If object has Table, IngredientBox, or IngredientItem component directly without InteractableObject on root
                 if (interactable == null)
                 {
                     Table table = hit.collider.GetComponentInParent<Table>();
                     IngredientBox box = hit.collider.GetComponentInParent<IngredientBox>();
+                    IngredientItem item = hit.collider.GetComponentInParent<IngredientItem>();
+
                     if (table != null) interactable = table.GetComponent<InteractableObject>() ?? table.gameObject.AddComponent<InteractableObject>();
                     else if (box != null) interactable = box.GetComponent<InteractableObject>() ?? box.gameObject.AddComponent<InteractableObject>();
+                    else if (item != null) interactable = item.GetComponent<InteractableObject>() ?? item.gameObject.AddComponent<InteractableObject>();
                 }
 
                 if (interactable != null)
